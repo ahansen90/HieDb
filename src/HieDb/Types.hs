@@ -1,12 +1,12 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module HieDb.Types where
 
@@ -17,17 +17,17 @@ import Data.IORef
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
+import Control.Exception
 import Control.Monad.IO.Class
 import Control.Monad.Reader
-import Control.Exception
 
 import Data.List.NonEmpty (NonEmpty(..))
 
 import Data.Int
 
 import Database.SQLite.Simple
-import Database.SQLite.Simple.ToField
 import Database.SQLite.Simple.FromField
+import Database.SQLite.Simple.ToField
 
 import qualified Text.ParserCombinators.ReadP as R
 
@@ -218,6 +218,32 @@ instance ToRow DefRow where
 instance FromRow DefRow where
   fromRow = DefRow <$> field <*> field <*> field <*> field
                    <*> field <*> field
+
+data Import = Import
+  { importModule :: ImportModule
+  , importItems :: [OccName]
+  , importHiding :: ImportHiding
+  }
+  deriving (Show)
+
+data ImportModule
+  = StandardImport ModuleName
+  | QualifiedImport ModuleName ModuleName
+  deriving (Show)
+
+data ImportHiding
+  = NoHiding
+  | HidingItems
+  deriving (Show)
+
+data ImportRow
+  { importHieFile :: FilePath
+  , importUnit :: Unit
+  , importMod :: ModuleName
+  , importQualifier :: Maybe ModuleName
+  , importIsHiding :: Bool
+  }
+  deriving (Show, Generic, ToRow)
 
 data ExportRow = ExportRow
   { exportHieFile :: FilePath -- ^ Exporting module
